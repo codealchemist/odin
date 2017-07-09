@@ -1,0 +1,13 @@
+{
+  "paths": {
+    "download": "/Users/scarullo/Development/movie-manager",
+    "watch": ""
+  },
+  "pushbullet": {
+    "token": "o.MHdcEA4zyHVebW3tArD9Q7c7WX7bo7Xg"
+  },
+  "dropbox": {
+    "token": "dx3BdvJY8yIAAAAAAAAAXTYghjbkznEn-a88-BqEXQ3NXZVvIxcC0eef0Ad3Z0Rb",
+    "torrentsPath": "/torrents"
+  }
+}

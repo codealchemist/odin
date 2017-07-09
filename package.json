@@ -1,0 +1,24 @@
+{
+  "name": "movie-manager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "config": "^1.26.1",
+    "debug": "^2.6.8",
+    "express": "^4.15.3",
+    "magnet-to-torrent": "^0.1.2",
+    "magnet-uri": "^5.1.7",
+    "node-watch": "^0.5.5",
+    "nodemon": "^1.11.0",
+    "redis": "^2.7.1",
+    "request": "^2.81.0",
+    "torrent-stream": "^1.0.3",
+    "webtorrent": "^0.98.19"
+  }
+}
