@@ -1,10 +1,11 @@
 const http = require('http')
 const express = require('express')
 const fs = require('fs')
+const config = require('config')
 
 const movieFinder = require('./clients/yts')
 const torrentManager = require('./torrent_manager')
-const videoStreamer = require('./video_streamer')
+const streamer = require('./streamer')
 const dropbox = require('./clients/dropbox')
 
 const app = express()
@@ -14,7 +15,7 @@ app.get('/torrents', (req, res) => {
 })
 
 app.get('/library', (req, res) => {
-  fs.readdir('./', (err, files) => {
+  fs.readdir(config.webtorrent.paths.download, (err, files) => {
     res.send(files)
   })
 })
@@ -25,12 +26,13 @@ app.get('/search', async (req, res) => {
 })
 
 app.get('/testStream', (req, res) => {
-  const url = "https://yts.ag/torrent/download/BBE2CCBB81E647039787D75BAA7A42B50F25035E"
-  videoStreamer.streamFromTorrent(torrentManager, url, res)
+  const url = "https://yts.ag/torrent/download/A02AA4059C39665F55099DD56EEEBEAE111C3D8E"
+  streamer.streamFromTorrent(torrentManager, url, req, res)
 })
 
 app.get('/testDisk', (req, res) => {
-  videoStreamer.streamFromDisk("./sample.mp4", res)
+  const path = "/Users/scarullo/Development/movie-manager/tmp/ghost/Ghost.In.The.Shell.2017.720p.BluRay.x264-[YTS.AG].mp4"
+  streamer.streamFromDisk(path, res)
 })
 
 app.get('/testDropbox', async (req, res) => {
@@ -38,9 +40,27 @@ app.get('/testDropbox', async (req, res) => {
   res.end()
 })
 
-torrentManager.resume()
-  .then(() => {
-    app.listen(3000, () => {
-      console.log('movies-manager listening on port 3000!')
-    })
+app.get('/diskPlayer', (req, res) => {
+  res.send(`
+    <video controls>
+      <source src="/testDisk" type="video/mp4">
+    </video>
+  `)
+})
+
+app.get('/torrentPlayer', (req, res) => {
+  res.send(`
+    <video controls>
+      <source src="/testStream" type="video/mp4">
+    </video>
+  `)
+})
+
+Promise.all([
+  torrentManager.resume()
+])
+.then(() => {
+  app.listen(3000, () => {
+    console.log('movies-manager listening on port 3000!')
   })
+})

@@ -14,10 +14,13 @@
     "express": "^4.15.3",
     "magnet-to-torrent": "^0.1.2",
     "magnet-uri": "^5.1.7",
+    "microtime": "^2.1.6",
     "node-watch": "^0.5.5",
     "nodemon": "^1.11.0",
     "redis": "^2.7.1",
     "request": "^2.81.0",
+    "rimraf": "^2.6.1",
+    "srt-to-vtt": "^1.1.1",
     "torrent-stream": "^1.0.3",
     "webtorrent": "^0.98.19"
   }

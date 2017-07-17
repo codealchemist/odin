@@ -1,15 +1,55 @@
 const WebTorrent = require('webtorrent')
 const config = require('config')
+const fs = require('fs')
+const path = require('path')
+const microtime = require('microtime')
+const rimraf = require('rimraf')
+
 const { findLargestFile } = require('./utils')
 
 const webTorrentClient = new WebTorrent()
 const redis = require('redis').createClient()
-const path = config.paths.download
+
+webTorrentClient.on('error', function (err) {
+  console.log(err)
+});
 
 const torrents = {}
+const tmpTorrents = {}
+const tmpCleanerInterval = 150000;
+
+const startWatching = () => {
+  if (!config.webtorrent.paths.watch) return;
+
+  fs.watch(config.webtorrent.paths.watch, (eventType, filename) => {
+    if (eventType === 'change' && filename.endsWith('.torrent')) {
+      download(filename)
+    }
+  })
+}
+
+const startTmpCleaner = () => {
+  setInterval(() => {
+    fs.readdir(config.webtorrent.paths.tmp, (err, files) => {
+      files.forEach(file => {
+        const stat = fs.statSync(path.join(config.webtorrent.paths.tmp, file))
+
+        if (microtime.now() - stat.atime >= config.webtorrent.tmp_ttl) {
+          rimraf(file, () => {})
+        }
+      })
+    })
+  }, tmpCleanerInterval);
+}
 
 const download = (magnetOrTorrent) => {
   return new Promise((resolve, reject) => {
+    const path = config.webtorrent.paths.download
+
+    if (torrents[magnetOrTorrent]) return reject('Torrent already downloading.')
+
+    torrents[magnetOrTorrent] = true
+
     webTorrentClient.add(magnetOrTorrent, { path }, (torrent) => {
       redis.sadd('in-progress', magnetOrTorrent)
       torrents[magnetOrTorrent] = torrent
@@ -25,39 +65,52 @@ const download = (magnetOrTorrent) => {
   })
 }
 
-const resume = () => {
+const downloadTmp = (magnetOrTorrent) => {
   return new Promise((resolve, reject) => {
-    redis.smembers('in-progress', (err, magnetsOrTorrents) => {
-      if (err) return reject()
-      const promises = magnetsOrTorrents.map((magnetOrTorrent) => download(magnetOrTorrent))
-      resolve(Promise.all(promises))
+    const path = config.webtorrent.paths.tmp
+
+    webTorrentClient.add(magnetOrTorrent, { path }, (torrent) => {
+      tmpTorrents[magnetOrTorrent] = torrent
+      resolve(torrent)
     })
   })
 }
 
-const createStreamFrom = (magnetOrTorrent) => {
-  let streamPromise;
-  const torrent = torrents[magnetOrTorrent]
+const resume = () => {
+  return new Promise((resolve, reject) => {
+    redis.smembers('in-progress', (err, magnetsOrTorrents) => {
+      if (err) return reject()
+
+      const promises = magnetsOrTorrents.map((magnetOrTorrent) =>
+        download(magnetOrTorrent)
+      )
+
+      Promise.all(promises).then(() => {
+        startWatching()
+        startTmpCleaner()
+        resolve()
+      })
+    })
+  })
+}
+
+
+const getFileFromTorrent = (magnetOrTorrent) => {
+  const torrent = torrents[magnetOrTorrent] || tmpTorrents[magnetOrTorrent]
 
   if (torrent) {
     const file = findLargestFile(torrent.files)
-    stream = file.createReadStream()
-    streamPromise = Promise.resolve(stream)
-  } else {
-    streamPromise = download(magnetOrTorrent)
-      .then((torrent) => {
-        const file = findLargestFile(torrent.files)
-        if (!file) return Promise.reject();
-        return file.createReadStream();
-      })
+    return Promise.resolve(file);
   }
 
-  return streamPromise
+  return downloadTmp(magnetOrTorrent)
+    .then(() => getFileFromTorrent(magnetOrTorrent))
 }
 
-const list = () => Object.values(torrents).map(torrent => ({
+const list = () => webTorrentClient.torrents.map(torrent => ({
     hash: torrent.infoHash,
-    name: torrent.info.name.toString('UTF-8'),
+    magnetURI: torrent.magnetURI,
+    name: torrent.info ? torrent.info.name.toString('UTF-8') : 'undefined',
     timeRemaining: torrent.timeRemaining,
     received: torrent.received,
     downloaded: torrent.downloaded,
@@ -71,4 +124,4 @@ const list = () => Object.values(torrents).map(torrent => ({
   })
 )
 
-module.exports = { resume, download, list, createStreamFrom }
+module.exports = { resume, download, list, getFileFromTorrent }

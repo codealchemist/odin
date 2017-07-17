@@ -22,14 +22,27 @@ const streamFromDisk = (path, response) => {
   })
 }
 
-const streamFromTorrent = (torrentManager, magnetOrTorrent, response) => {
-  torrentManager.createStreamFrom(magnetOrTorrent)
-    .then(stream => {
-      response.writeHead(200, {
+const streamFromTorrent = (torrentManager, magnetOrTorrent, request, response) => {
+  torrentManager.getFileFromTorrent(magnetOrTorrent)
+    .then((file) => {
+      const range = request.headers.range;
+      const total = file.length;
+      const parts = range.replace(/bytes=/, '').split('-');
+      const partialstart = parts[0];
+      const partialend = parts[1];
+
+      const start = parseInt(partialstart, 10);
+      const end = partialend ? parseInt(partialend, 10) : total;
+      const chunksize = (end - start);
+
+      response.writeHead(206, {
+        'Content-Range': `bytes ${start}-${end - 1}/${total}`,
         'Accept-Ranges': 'bytes',
-        'Transfer-Encoding':' chunked',
+        'Content-Length': chunksize,
         'Content-Type': 'video/mp4'
-      });
+      })
+
+      const stream = file.createReadStream({ start, end })
 
       stream.pipe(response)
 
