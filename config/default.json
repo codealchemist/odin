@@ -1,11 +1,12 @@
 {
+  "api": {
+    "port": 3000
+  },
   "webtorrent": {
     "paths": {
-      "download": "/Users/scarullo/Development/movie-manager/download",
-      "watch": "/Users/scarullo/Development/movie-manager/torrents",
-      "tmp": "/Users/scarullo/Development/movie-manager/tmp"
-    },
-    "tmp_ttl": 720000
+      "download": "/Users/scarullo/Development/odin/download",
+      "watch": "/Users/scarullo/Development/odin/torrents"
+    }
   },
   "pushbullet": {
     "token": "o.MHdcEA4zyHVebW3tArD9Q7c7WX7bo7Xg"

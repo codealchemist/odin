@@ -28,20 +28,6 @@ const startWatching = () => {
   })
 }
 
-const startTmpCleaner = () => {
-  setInterval(() => {
-    fs.readdir(config.webtorrent.paths.tmp, (err, files) => {
-      files.forEach(file => {
-        const stat = fs.statSync(path.join(config.webtorrent.paths.tmp, file))
-
-        if (microtime.now() - stat.atime >= config.webtorrent.tmp_ttl) {
-          rimraf(file, () => {})
-        }
-      })
-    })
-  }, tmpCleanerInterval);
-}
-
 const download = (magnetOrTorrent) => {
   return new Promise((resolve, reject) => {
     const path = config.webtorrent.paths.download
@@ -67,9 +53,7 @@ const download = (magnetOrTorrent) => {
 
 const downloadTmp = (magnetOrTorrent) => {
   return new Promise((resolve, reject) => {
-    const path = config.webtorrent.paths.tmp
-
-    webTorrentClient.add(magnetOrTorrent, { path }, (torrent) => {
+    webTorrentClient.add(magnetOrTorrent, (torrent) => {
       tmpTorrents[magnetOrTorrent] = torrent
       resolve(torrent)
     })
@@ -85,11 +69,7 @@ const resume = () => {
         download(magnetOrTorrent)
       )
 
-      Promise.all(promises).then(() => {
-        startWatching()
-        startTmpCleaner()
-        resolve()
-      })
+      Promise.all(promises).then(startWatching).then(resolve)
     })
   })
 }
@@ -107,7 +87,7 @@ const getFileFromTorrent = (magnetOrTorrent) => {
     .then(() => getFileFromTorrent(magnetOrTorrent))
 }
 
-const list = () => webTorrentClient.torrents.map(torrent => ({
+const downloading = () => webTorrentClient.torrents.map(torrent => ({
     hash: torrent.infoHash,
     magnetURI: torrent.magnetURI,
     name: torrent.info ? torrent.info.name.toString('UTF-8') : 'undefined',
@@ -124,4 +104,10 @@ const list = () => webTorrentClient.torrents.map(torrent => ({
   })
 )
 
-module.exports = { resume, download, list, getFileFromTorrent }
+const downloaded = () => new Promise((resolve, reject) => {
+  fs.readdir(config.webtorrent.paths.download, (err, files) => {
+    resolve(files)
+  })
+})
+
+module.exports = { resume, download, downloaded, downloading, getFileFromTorrent }

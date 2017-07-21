@@ -1,7 +1,4 @@
-const http = require('http')
 const express = require('express')
-const fs = require('fs')
-const config = require('config')
 
 const movieFinder = require('./clients/yts')
 const torrentManager = require('./torrent_manager')
@@ -11,18 +8,15 @@ const dropbox = require('./clients/dropbox')
 const app = express()
 
 app.get('/torrents', (req, res) => {
-  res.send(torrentManager.list())
+  res.send(torrentManager.downloading())
 })
 
 app.get('/library', (req, res) => {
-  fs.readdir(config.webtorrent.paths.download, (err, files) => {
-    res.send(files)
-  })
+  torrentManager.downloaded().then(files => res.send(JSON.stringify(files)));
 })
 
-app.get('/search', async (req, res) => {
-  const movies = await movieFinder.search(req.query.query)
-  res.send(JSON.stringify(movies))
+app.get('/search', (req, res) => {
+  movieFinder.search(req.query.query).then(movies => res.send(JSON.stringify(movies)))
 })
 
 app.get('/testStream', (req, res) => {
@@ -56,11 +50,4 @@ app.get('/torrentPlayer', (req, res) => {
   `)
 })
 
-Promise.all([
-  torrentManager.resume()
-])
-.then(() => {
-  app.listen(3000, () => {
-    console.log('movies-manager listening on port 3000!')
-  })
-})
+module.exports = app;
