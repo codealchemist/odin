@@ -123,6 +123,10 @@ const downloaded = () => {
       return { name: folder, path: filepath }
     }
 
+    if (!fs.lstatSync(folder).isDirectory()) {
+      return;
+    }
+
     const files = fs.readdirSync(config.webtorrent.paths.download + '/' + folder)
 
     const file = files.find(file => file.endsWith('.mp4'))
