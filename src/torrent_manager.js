@@ -3,9 +3,21 @@ const config = require('config')
 const fs = require('fs')
 const { findLargestFile } = require('./utils')
 const webTorrentClient = new WebTorrent()
-const redis = require('redis').createClient()
+const shulz = require('shulz')
 const validUrl = require('valid-url')
 const magnet = require('magnet-uri')
+
+const inProgressMap = shulz.open('./.in-progress');
+
+
+// Strings are the only valid datatype (for now)
+map.set('key', 'value');
+map.clear('key');
+// Optional manual compact call (hashmaps shouldn't take up too much space)
+// Best practice is to compact after x sets, or on a scheudule
+map.compact();
+// Close is only needed on shutdown
+map.close();
 
 webTorrentClient.on('error', function (err) {
   console.log(err)
@@ -14,6 +26,9 @@ webTorrentClient.on('error', function (err) {
 const torrents = {}
 const tmpTorrents = {}
 const tmpCleanerInterval = 150000;
+
+const inProgressFileIn = fs.createReadStream()
+const inProgressFileOut = fs.
 
 const startWatching = () => {
   if (!config.webtorrent.paths.watch) return;
@@ -38,12 +53,12 @@ const download = (magnetOrTorrent) => {
     torrents[magnetOrTorrent] = true
 
     webTorrentClient.add(magnetOrTorrent, { path }, (torrent) => {
-      redis.sadd('in-progress', magnetOrTorrent)
+      map.set(`in-progress.${magnetOrTorrent}`, magnetOrTorrent)
       torrents[magnetOrTorrent] = torrent
 
       torrent.on('done', () => {
         torrents[magnetOrTorrent] = null
-        redis.srem('in-progress', magnetOrTorrent)
+        map.clear(`in-progress.${magnetOrTorrent}`)
         torrent.emit('completed')
       })
 
@@ -75,17 +90,11 @@ const downloadTmp = (magnetOrTorrent) => {
 }
 
 const resume = () => {
-  return new Promise((resolve, reject) => {
-    redis.smembers('in-progress', (err, magnetsOrTorrents) => {
-      if (err) return reject()
+  const inProgress = shulz.read('./.in-progress');
+  const promises = Object.values(inProgress)
+    .map((magnetOrTorrent) => download(magnetOrTorrent))
 
-      const promises = magnetsOrTorrents.map((magnetOrTorrent) =>
-        download(magnetOrTorrent)
-      )
-
-      Promise.all(promises).then(startWatching).then(resolve)
-    })
-  })
+  return Promise.all(promises).then(startWatching)
 }
 
 
