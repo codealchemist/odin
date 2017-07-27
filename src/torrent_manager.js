@@ -1,14 +1,11 @@
 const WebTorrent = require('webtorrent')
 const config = require('config')
 const fs = require('fs')
-const path = require('path')
-const microtime = require('microtime')
-const rimraf = require('rimraf')
-
 const { findLargestFile } = require('./utils')
-
 const webTorrentClient = new WebTorrent()
 const redis = require('redis').createClient()
+const validUrl = require('valid-url')
+const magnet = require('magnet-uri')
 
 webTorrentClient.on('error', function (err) {
   console.log(err)
@@ -34,6 +31,10 @@ const download = (magnetOrTorrent) => {
 
     if (torrents[magnetOrTorrent]) return reject('Torrent already downloading.')
 
+    if (!magnetOrTorrent || (!validUrl.isUri(magnetOrTorrent) && !magnet.decode(magnetOrTorrent).infoHash)) {
+      return reject('Invalid torrent URL or magnetURI.')
+    }
+
     torrents[magnetOrTorrent] = true
 
     webTorrentClient.add(magnetOrTorrent, { path }, (torrent) => {
@@ -53,8 +54,21 @@ const download = (magnetOrTorrent) => {
 
 const downloadTmp = (magnetOrTorrent) => {
   return new Promise((resolve, reject) => {
+
+    if (!magnetOrTorrent || (!validUrl.isUri(magnetOrTorrent) && !magnet.decode(magnetOrTorrent).infoHash)) {
+      return reject('Invalid torrent URL or magnetURI.')
+    }
+
+    tmpTorrents[magnetOrTorrent] = true
+
     webTorrentClient.add(magnetOrTorrent, (torrent) => {
       tmpTorrents[magnetOrTorrent] = torrent
+
+      torrent.on('done', () => {
+        torrents[magnetOrTorrent] = null
+        torrent.emit('completed')
+      })
+
       resolve(torrent)
     })
   })
@@ -80,6 +94,7 @@ const getFileFromTorrent = (magnetOrTorrent) => {
 
   if (torrent) {
     const file = findLargestFile(torrent.files)
+    if (!file.path.startsWith('/tmp/')) file.path = torrent.path + '/' + file.path
     return Promise.resolve(file);
   }
 
@@ -87,7 +102,7 @@ const getFileFromTorrent = (magnetOrTorrent) => {
     .then(() => getFileFromTorrent(magnetOrTorrent))
 }
 
-const downloading = () => webTorrentClient.torrents.map(torrent => ({
+const downloading = () => Object.values(torrents).map(torrent => ({
     hash: torrent.infoHash,
     magnetURI: torrent.magnetURI,
     name: torrent.info ? torrent.info.name.toString('UTF-8') : 'undefined',
@@ -104,10 +119,27 @@ const downloading = () => webTorrentClient.torrents.map(torrent => ({
   })
 )
 
-const downloaded = () => new Promise((resolve, reject) => {
-  fs.readdir(config.webtorrent.paths.download, (err, files) => {
-    resolve(files)
-  })
-})
+const downloaded = () => {
+  const folders = fs.readdirSync(config.webtorrent.paths.download)
+  const files = folders.map(folder => {
+    if (folder.endsWith('.mp4')) {
+      const filepath = config.webtorrent.paths.download + '/' + folder
+      return { name: folder, path: filepath }
+    }
 
-module.exports = { resume, download, downloaded, downloading, getFileFromTorrent }
+    const files = fs.readdirSync(config.webtorrent.paths.download + '/' + folder)
+
+    const file = files.find(file => file.endsWith('.mp4'))
+
+    if (file) {
+      return {
+        path: config.webtorrent.paths.download + '/' + folder + '/' + file,
+        name: folder
+      }
+    }
+  })
+
+  return files
+}
+
+module.exports = { resume, download, downloadTmp, downloaded, downloading, getFileFromTorrent }

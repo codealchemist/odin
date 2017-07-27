@@ -10,19 +10,25 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.17.2",
     "config": "^1.26.1",
     "debug": "^2.6.8",
     "express": "^4.15.3",
+    "imdb-api": "^3.1.1",
     "magnet-to-torrent": "^0.1.2",
     "magnet-uri": "^5.1.7",
     "microtime": "^2.1.6",
     "node-watch": "^0.5.5",
     "nodemon": "^1.11.0",
+    "opensubtitles-api": "^4.0.0",
     "redis": "^2.7.1",
     "request": "^2.81.0",
     "rimraf": "^2.6.1",
     "srt-to-vtt": "^1.1.1",
+    "subdb": "0.0.3",
+    "subdownloader": "^2.0.1",
     "torrent-stream": "^1.0.3",
+    "valid-url": "^1.0.9",
     "webtorrent": "^0.98.19"
   }
 }
