@@ -9,16 +9,6 @@ const magnet = require('magnet-uri')
 
 const inProgressMap = shulz.open('./.in-progress');
 
-
-// Strings are the only valid datatype (for now)
-map.set('key', 'value');
-map.clear('key');
-// Optional manual compact call (hashmaps shouldn't take up too much space)
-// Best practice is to compact after x sets, or on a scheudule
-map.compact();
-// Close is only needed on shutdown
-map.close();
-
 webTorrentClient.on('error', function (err) {
   console.log(err)
 });
@@ -26,9 +16,6 @@ webTorrentClient.on('error', function (err) {
 const torrents = {}
 const tmpTorrents = {}
 const tmpCleanerInterval = 150000;
-
-const inProgressFileIn = fs.createReadStream()
-const inProgressFileOut = fs.
 
 const startWatching = () => {
   if (!config.webtorrent.paths.watch) return;
