@@ -40,12 +40,12 @@ const download = (magnetOrTorrent) => {
     torrents[magnetOrTorrent] = true
 
     webTorrentClient.add(magnetOrTorrent, { path }, (torrent) => {
-      map.set(`in-progress.${magnetOrTorrent}`, magnetOrTorrent)
+      inProgressMap.set(`in-progress.${magnetOrTorrent}`, magnetOrTorrent)
       torrents[magnetOrTorrent] = torrent
 
       torrent.on('done', () => {
         torrents[magnetOrTorrent] = null
-        map.clear(`in-progress.${magnetOrTorrent}`)
+        inProgressMap.clear(`in-progress.${magnetOrTorrent}`)
         torrent.emit('completed')
       })
 
@@ -118,12 +118,13 @@ const downloading = () => Object.values(torrents).map(torrent => ({
 const downloaded = () => {
   const folders = fs.readdirSync(config.webtorrent.paths.download)
   const files = folders.map(folder => {
+    const filepath = config.webtorrent.paths.download + '/' + folder
+
     if (folder.endsWith('.mp4')) {
-      const filepath = config.webtorrent.paths.download + '/' + folder
       return { name: folder, path: filepath }
     }
 
-    if (!fs.lstatSync(folder).isDirectory()) {
+    if (!fs.lstatSync(filepath).isDirectory()) {
       return;
     }
 
