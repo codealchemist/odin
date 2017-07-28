@@ -140,7 +140,7 @@ const downloaded = () => {
     }
   })
 
-  return files
+  return files.filter(file => file)
 }
 
 module.exports = { resume, download, downloadTmp, downloaded, downloading, getFileFromTorrent }
