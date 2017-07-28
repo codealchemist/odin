@@ -1,5 +1,6 @@
 const subtitlesManager = require('./subtitles_manager')
 const querystring = require('querystring')
+const config = require('config')
 
 const findLargestFile = (files) => {
   let max = 0;
@@ -16,12 +17,12 @@ const generateHtmlPlayerWithSubs = (type, path, params) => {
       const subs = subFiles.map(file => {
         const matches = file.match(/(\S{2})\.srt$/)
         const params = querystring.stringify({ path: file })
-        return `<track src="http://localhost:3000/subtitlesStream?${params}" kind="subtitles" srclang="${matches[1]}" />`
+        return `<track src="http://${config.api.host}:${config.api.port}/subtitlesStream?${params}" kind="subtitles" srclang="${matches[1]}" />`
       })
 
       return `
         <video class="player" crossorigin="anonymous" controls>
-          <source src="http://localhost:3000/${type}Stream?${params}" type="video/mp4">
+          <source src="http://${config.api.host}:${config.api.port}/${type}Stream?${params}" type="video/mp4">
           ${subs.join('')}
         </video>
       `
