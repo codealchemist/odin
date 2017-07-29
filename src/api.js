@@ -7,6 +7,7 @@ const srt2vtt = require('srt-to-vtt')
 
 const movieFinder = require('./clients/yts')
 const subtitlesManager = require('./subtitles_manager')
+const postersManager = require('./posters_manager')
 const torrentManager = require('./torrent_manager')
 const videoStreamer = require('./video_streamer')
 const { findLargestFile, generateHtmlPlayerWithSubs, TORRENT_PLAYER, DISK_PLAYER, downloadFile } = require('./utils')
