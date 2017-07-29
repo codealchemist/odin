@@ -9,6 +9,10 @@ const magnet = require('magnet-uri')
 
 const inProgressMap = shulz.open('./.in-progress');
 
+process.on('exit', () => {
+  inProgressMap.close()
+})
+
 webTorrentClient.on('error', function (err) {
   console.log(err)
 });
