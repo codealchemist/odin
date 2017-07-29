@@ -92,7 +92,7 @@ const downloadTmp = (magnetOrTorrent) => {
       tmpTorrents[magnetOrTorrent] = torrent
 
       torrent.on('done', () => {
-        delete torrents[magnetOrTorrent]
+        delete tmpTorrents[magnetOrTorrent]
         torrent.emit('completed')
       })
 
@@ -125,6 +125,12 @@ const getFileFromTorrent = (magnetOrTorrent) => {
 
   return downloadTmp(magnetOrTorrent)
     .then(() => getFileFromTorrent(magnetOrTorrent))
+}
+
+const removeTmpTorrent = (magnetOrTorrent) => {
+  webTorrentClient.remove(magnetOrTorrent, (err) => {
+    delete tmpTorrents[magnetOrTorrent]
+  })
 }
 
 const downloading = () => Object.values(torrents).map(torrent => ({

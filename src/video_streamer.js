@@ -57,6 +57,7 @@ const streamFromTorrent = (torrentManager, magnetOrTorrent, request, response) =
       response.on('close', () => {
         stream.destroy()
         stream = null
+        torrentManager.removeTmpTorrent(magnetOrTorrent)
       })
     })
 }
