@@ -137,8 +137,7 @@ const getFileFromTorrent = (magnetOrTorrent) => {
 
   if (torrent) {
     const file = findLargestFile(torrent.files)
-    if (!file.path.startsWith(config.webtorrent.paths.tmp)) file.path = torrent.path + '/' + file.path
-    return Promise.resolve(file);
+    return Promise.resolve({ file, fullPath: torrent.path + '/' + file.path });
   }
 
   return downloadTmp(magnetOrTorrent)

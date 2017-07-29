@@ -82,7 +82,7 @@ app.get('/torrentPlayer', (req, res) => {
   const params = querystring.stringify({ url: req.query.url })
 
   torrentManager.getFileFromTorrent(req.query.url)
-    .then(file => generateHtmlPlayerWithSubs(TORRENT_PLAYER, file.path, params))
+    .then(({ file, fullPath }) => generateHtmlPlayerWithSubs(TORRENT_PLAYER, fullPath, params))
     .then(html => res.send(html))
     .catch(err => res.status(500).send(err))
 })
