@@ -13,6 +13,10 @@ const findLargestFile = (files) => {
 
 const generateHtmlPlayerWithSubs = (type, path, params) => {
   return subtitlesManager.fetchSubtitles(path)
+    .catch((err) => {
+      console.log('Couldn\'t download any sub:', err)
+      return Promise.resolve([]); // Just to continue
+    })
     .then((subFiles) => {
       const subs = subFiles.map(file => {
         const matches = file.match(/(\S{2})\.srt$/)

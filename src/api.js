@@ -58,7 +58,11 @@ app.put('/download', (req, res) => {
     .then(torrent => {
       torrent.on('completed', () => {
         const file = findLargestFile(torrent.files)
-        subtitlesManager.fetchSubtitles(torrent.path + '/' + file.path)
+        subtitlesManager
+          .fetchSubtitles(torrent.path + '/' + file.path)
+          .catch((err) => {
+            console.log('Couldn\'t download any sub:', err)
+          })
       })
 
       res.end('OK')
