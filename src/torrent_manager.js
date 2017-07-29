@@ -50,9 +50,9 @@ const startTorrentsWatcher = () => {
   })
 }
 
-const removeTmpTorrent = (magnetOrTorrent) => {
+const removeTmpTorrent = (magnetOrTorrent, infoHash) => {
   return new Promise((resolve, reject) => {
-    webTorrentClient.remove(magnetOrTorrent, (err) => {
+    webTorrentClient.remove(infoHash, (err) => {
       if (err) return reject(err)
       delete tmpTorrents[magnetOrTorrent]
       resolve()
@@ -68,9 +68,9 @@ const download = (magnetOrTorrent) => {
 
     if (tmpTorrents[magnetOrTorrent]) {
       try {
-        await removeTmpTorrent(magnetOrTorrent)
+        await removeTmpTorrent(magnetOrTorrent, tmpTorrents[magnetOrTorrent].infoHash)
       } catch (err) {
-        console.log('Error removing temporary torrent:', err)
+        return reject('Error removing temporary torrent:', err)
       }
     }
 
