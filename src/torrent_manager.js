@@ -70,7 +70,7 @@ const download = (magnetOrTorrent) => {
       try {
         await removeTmpTorrent(magnetOrTorrent)
       } catch (err) {
-        console.log(err)
+        console.log('Error removing temporary torrent:', err)
       }
     }
 

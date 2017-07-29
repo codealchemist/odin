@@ -25,7 +25,6 @@ const downloadFile = (url, dest) => {
 }
 
 const downloadSubtitles = (moviePath) => {
-  console.log(moviePath)
   const filename = path.basename(moviePath)
 
   return OpenSubtitles.login()
@@ -40,7 +39,7 @@ const downloadSubtitles = (moviePath) => {
           return Promise.all(promises)
         })
         .catch(err => {
-          console.log(err);
+          console.log('Error with OpenSubtitles.org:', err);
         })
     )
 }
