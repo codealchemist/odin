@@ -1,12 +1,13 @@
 const WebTorrent = require('webtorrent')
 const config = require('config')
 const fs = require('fs')
-const { findLargestFile } = require('./utils')
-const webTorrentClient = new WebTorrent()
 const shulz = require('shulz')
 const validUrl = require('valid-url')
 const magnet = require('magnet-uri')
+const rimraf = require('rimraf')
+const { findLargestFile } = require('./utils')
 
+const webTorrentClient = new WebTorrent()
 const inProgressMap = shulz.open('./.in-progress');
 
 process.on('exit', () => {
@@ -21,7 +22,24 @@ const torrents = {}
 const tmpTorrents = {}
 const tmpCleanerInterval = 150000;
 
-const startWatching = () => {
+const startTmpCleaner = () => {
+  setInterval(() => {
+    fs.readdir(config.webtorrent.paths.tmp, (err, files) => {
+      files.forEach(file => {
+        const stat = fs.statSync(path.join(config.webtorrent.paths.tmp, file))
+
+        const hrTime = process.hrtime()
+        const now = (hrTime[0] * 1000000) + (hrTime[1] / 1000)
+
+        if (now - stat.atime >= config.webtorrent.tmp_ttl) {
+          rimraf(file, () => {})
+        }
+      })
+    })
+  }, tmpCleanerInterval);
+}
+
+const startTorrentsWatcher = () => {
   if (!config.webtorrent.paths.watch) return;
 
   fs.watch(config.webtorrent.paths.watch, (eventType, filename) => {
@@ -65,9 +83,11 @@ const downloadTmp = (magnetOrTorrent) => {
       return reject('Invalid torrent URL or magnetURI.')
     }
 
+    const path = config.webtorrent.paths.tmp
+
     tmpTorrents[magnetOrTorrent] = true
 
-    webTorrentClient.add(magnetOrTorrent, (torrent) => {
+    webTorrentClient.add(magnetOrTorrent, { path }, (torrent) => {
       tmpTorrents[magnetOrTorrent] = torrent
 
       torrent.on('done', () => {
@@ -85,7 +105,11 @@ const resume = () => {
   const promises = Object.values(inProgress)
     .map((magnetOrTorrent) => download(magnetOrTorrent))
 
-  return Promise.all(promises).then(startWatching)
+  return Promise.all(promises)
+    .then(() => {
+      startTmpCleaner()
+      startTorrentsWatcher()
+    })
 }
 
 

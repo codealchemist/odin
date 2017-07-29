@@ -10,9 +10,11 @@
     "password": "34389710abca"
   },
   "webtorrent": {
+    "tmp_ttl": 7200000,
     "paths": {
       "download": "/Users/scarullo/Development/odin/download",
-      "watch": "/Users/scarullo/Development/odin/torrents"
+      "watch": "/Users/scarullo/Development/odin/torrents",
+      "tmp": "/Users/scarullo/Development/odin/tmp"
     }
   },
   "pushbullet": {
