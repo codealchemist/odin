@@ -16,7 +16,10 @@ const fetchSubtitles = (moviePath) => {
   let promise;
 
   if (config.opensubtitles.username && config.opensubtitles.password && config.opensubtitles.useragent){
-    return opensubtitles.downloadSubtitles(moviePath).catch(() => subdb.downloadSubtitles(moviePath))
+    return opensubtitles.downloadSubtitles(moviePath).catch((err) => {
+      console.log(err)
+      subdb.downloadSubtitles(moviePath)
+    })
   } else {
     return subdb.downloadSubtitles(moviePath)
   }

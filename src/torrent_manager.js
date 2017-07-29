@@ -167,7 +167,11 @@ const downloaded = () => {
     const filepath = config.webtorrent.paths.download + '/' + folder
 
     if (folder.endsWith('.mp4')) {
-      return { name: folder, path: filepath }
+      return {
+        name: folder,
+        path: filepath,
+        poster: poster: `/images/${folder}.jpg`
+      }
     }
 
     if (!fs.lstatSync(filepath).isDirectory()) {
@@ -181,7 +185,8 @@ const downloaded = () => {
     if (file) {
       return {
         path: config.webtorrent.paths.download + '/' + folder + '/' + file,
-        name: folder
+        name: folder,
+        poster: `/images/${file}.jpg`
       }
     }
   })
