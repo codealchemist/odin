@@ -50,11 +50,29 @@ const startTorrentsWatcher = () => {
   })
 }
 
-const download = (magnetOrTorrent) => {
+const removeTmpTorrent = (magnetOrTorrent) => {
   return new Promise((resolve, reject) => {
+    webTorrentClient.remove(magnetOrTorrent, (err) => {
+      if (err) return reject(err)
+      delete tmpTorrents[magnetOrTorrent]
+      resolve()
+    })
+  })
+}
+
+const download = (magnetOrTorrent) => {
+  return new Promise(async (resolve, reject) => {
     const path = config.webtorrent.paths.download
 
     if (torrents[magnetOrTorrent]) return reject('Torrent already downloading.')
+
+    if (tmpTorrents[magnetOrTorrent]) {
+      try {
+        await removeTmpTorrent(magnetOrTorrent)
+      } catch (err) {
+        console.log(err)
+      }
+    }
 
     if (!magnetOrTorrent || (!validUrl.isUri(magnetOrTorrent) && !magnet.decode(magnetOrTorrent).infoHash)) {
       return reject('Invalid torrent URL or magnetURI.')
@@ -127,12 +145,6 @@ const getFileFromTorrent = (magnetOrTorrent) => {
     .then(() => getFileFromTorrent(magnetOrTorrent))
 }
 
-const removeTmpTorrent = (magnetOrTorrent) => {
-  webTorrentClient.remove(magnetOrTorrent, (err) => {
-    delete tmpTorrents[magnetOrTorrent]
-  })
-}
-
 const downloading = () => Object.values(torrents).map(torrent => ({
     hash: torrent.infoHash,
     magnetURI: torrent.magnetURI,
@@ -178,4 +190,4 @@ const downloaded = () => {
   return files.filter(file => file)
 }
 
-module.exports = { resume, download, downloadTmp, downloaded, downloading, getFileFromTorrent }
+module.exports = { resume, download, downloadTmp, downloaded, downloading, getFileFromTorrent, removeTmpTorrent }
