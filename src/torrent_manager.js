@@ -66,7 +66,7 @@ const download = (magnetOrTorrent) => {
       torrents[magnetOrTorrent] = torrent
 
       torrent.on('done', () => {
-        torrents[magnetOrTorrent] = null
+        delete torrents[magnetOrTorrent]
         inProgressMap.clear(`in-progress.${magnetOrTorrent}`)
         torrent.emit('completed')
       })
@@ -91,7 +91,7 @@ const downloadTmp = (magnetOrTorrent) => {
       tmpTorrents[magnetOrTorrent] = torrent
 
       torrent.on('done', () => {
-        torrents[magnetOrTorrent] = null
+        delete torrents[magnetOrTorrent]
         torrent.emit('completed')
       })
 
