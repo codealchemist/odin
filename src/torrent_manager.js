@@ -5,6 +5,7 @@ const shulz = require('shulz')
 const validUrl = require('valid-url')
 const magnet = require('magnet-uri')
 const rimraf = require('rimraf')
+const path = require('path')
 const { findLargestFile } = require('./utils')
 
 const webTorrentClient = new WebTorrent()
@@ -20,7 +21,7 @@ webTorrentClient.on('error', function (err) {
 
 const torrents = {}
 const tmpTorrents = {}
-const tmpCleanerInterval = 150000;
+const tmpCleanerInterval = 3600000;
 
 const startTmpCleaner = () => {
   setInterval(() => {
