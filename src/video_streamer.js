@@ -1,17 +1,16 @@
 const fs = require('fs')
-const { findLargestFile } = require('./utils');
 
 const streamFromDisk = (path, request, response) => {
-  const stats = fs.statSync(path);
-  const range = request.headers.range;
-  const total = stats.size;
-  const parts = range.replace(/bytes=/, '').split('-');
-  const partialstart = parts[0];
-  const partialend = parts[1];
+  const stats = fs.statSync(path)
+  const range = request.headers.range
+  const total = stats.size
+  const parts = range.replace(/bytes=/, '').split('-')
+  const partialstart = parts[0]
+  const partialend = parts[1]
 
-  const start = parseInt(partialstart, 10);
-  const end = partialend ? parseInt(partialend, 10) : total;
-  const chunksize = (end - start);
+  const start = parseInt(partialstart, 10)
+  const end = partialend ? parseInt(partialend, 10) : total
+  const chunksize = (end - start)
 
   response.writeHead(206, {
     'Content-Range': `bytes ${start}-${end - 1}/${total}`,
@@ -33,15 +32,15 @@ const streamFromDisk = (path, request, response) => {
 const streamFromTorrent = (torrentManager, magnetOrTorrent, request, response) => {
   torrentManager.getFileFromTorrent(magnetOrTorrent)
     .then((file) => {
-      const range = request.headers.range;
-      const total = file.length;
-      const parts = range.replace(/bytes=/, '').split('-');
-      const partialstart = parts[0];
-      const partialend = parts[1];
+      const range = request.headers.range
+      const total = file.length
+      const parts = range.replace(/bytes=/, '').split('-')
+      const partialstart = parts[0]
+      const partialend = parts[1]
 
-      const start = parseInt(partialstart, 10);
-      const end = partialend ? parseInt(partialend, 10) : total;
-      const chunksize = (end - start);
+      const start = parseInt(partialstart, 10)
+      const end = partialend ? parseInt(partialend, 10) : total
+      const chunksize = (end - start)
 
       response.writeHead(206, {
         'Content-Range': `bytes ${start}-${end - 1}/${total}`,

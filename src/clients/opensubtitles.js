@@ -9,18 +9,18 @@ const OpenSubtitles = new OS({
   username: config.opensubtitles.username,
   password: config.opensubtitles.password,
   ssl: true
-});
+})
 
 const downloadFile = (url, dest) => {
   return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(dest);
-    const request = https.get(url, (response) => {
+    const file = fs.createWriteStream(dest)
+    https.get(url, (response) => {
       response.pipe(file)
-      file.on('finish', function() {
+      file.on('finish', function () {
         file.close()
         resolve(dest)
-      });
-    });
+      })
+    })
   })
 }
 
@@ -39,10 +39,9 @@ const downloadSubtitles = (moviePath) => {
           return Promise.all(promises)
         })
         .catch(err => {
-          console.log('Error with OpenSubtitles.org:', err);
+          console.log('Error with OpenSubtitles.org:', err)
         })
     )
 }
-
 
 module.exports = { downloadSubtitles }

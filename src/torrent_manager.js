@@ -9,7 +9,7 @@ const path = require('path')
 const { findLargestFile } = require('./utils')
 
 const webTorrentClient = new WebTorrent()
-const inProgressMap = shulz.open('./.in-progress');
+const inProgressMap = shulz.open('./.in-progress')
 
 process.on('exit', () => {
   inProgressMap.close()
@@ -17,15 +17,16 @@ process.on('exit', () => {
 
 webTorrentClient.on('error', function (err) {
   console.log(err)
-});
+})
 
 const torrents = {}
 const tmpTorrents = {}
-const tmpCleanerInterval = 3600000;
+const tmpCleanerInterval = 3600000
 
 const startTmpCleaner = () => {
   setInterval(() => {
     fs.readdir(config.webtorrent.paths.tmp, (err, files) => {
+      if (err) throw err
       files.forEach(file => {
         const stat = fs.statSync(path.join(config.webtorrent.paths.tmp, file))
 
@@ -37,11 +38,11 @@ const startTmpCleaner = () => {
         }
       })
     })
-  }, tmpCleanerInterval);
+  }, tmpCleanerInterval)
 }
 
 const startTorrentsWatcher = () => {
-  if (!config.webtorrent.paths.watch) return;
+  if (!config.webtorrent.paths.watch) return
 
   fs.watch(config.webtorrent.paths.watch, (eventType, filename) => {
     if (eventType === 'change' && filename.endsWith('.torrent')) {
@@ -97,13 +98,11 @@ const download = (magnetOrTorrent) => {
 
 const downloadTmp = (magnetOrTorrent) => {
   return new Promise((resolve, reject) => {
-
     if (!magnetOrTorrent || (!validUrl.isUri(magnetOrTorrent) && !magnet.decode(magnetOrTorrent).infoHash)) {
       return reject('Invalid torrent URL or magnetURI.')
     }
 
     const path = config.webtorrent.paths.tmp
-
     tmpTorrents[magnetOrTorrent] = true
 
     webTorrentClient.add(magnetOrTorrent, { path }, (torrent) => {
@@ -120,7 +119,12 @@ const downloadTmp = (magnetOrTorrent) => {
 }
 
 const resume = () => {
-  const inProgress = shulz.read('./.in-progress');
+  const inProgress = shulz.read('./.in-progress')
+  // No torrents in progress.
+  if (!Object.keys(inProgress).length) {
+    return new Promise((resolve, reject) => resolve())
+  }
+
   const promises = Object.values(inProgress)
     .map((magnetOrTorrent) => download(magnetOrTorrent))
 
@@ -131,14 +135,13 @@ const resume = () => {
     })
 }
 
-
 const getFileFromTorrent = (magnetOrTorrent) => {
   const torrent = torrents[magnetOrTorrent] || tmpTorrents[magnetOrTorrent]
 
   if (torrent) {
     const file = findLargestFile(torrent.files)
     if (!file.path.startsWith(config.webtorrent.paths.tmp)) file.path = torrent.path + '/' + file.path
-    return Promise.resolve(file);
+    return Promise.resolve(file)
   }
 
   return downloadTmp(magnetOrTorrent)
@@ -146,21 +149,20 @@ const getFileFromTorrent = (magnetOrTorrent) => {
 }
 
 const downloading = () => Object.values(torrents).map(torrent => ({
-    hash: torrent.infoHash,
-    magnetURI: torrent.magnetURI,
-    name: torrent.info ? torrent.info.name.toString('UTF-8') : 'undefined',
-    timeRemaining: torrent.timeRemaining,
-    received: torrent.received,
-    downloaded: torrent.downloaded,
-    uploaded: torrent.uploaded,
-    downloadSpeed: torrent.downloadSpeed,
-    uploadSpeed: torrent.uploadSpeed,
-    progress: torrent.progress,
-    ratio: torrent.ratio,
-    numPeers: torrent.numPeers,
-    path: torrent.path
-  })
-)
+  hash: torrent.infoHash,
+  magnetURI: torrent.magnetURI,
+  name: torrent.info ? torrent.info.name.toString('UTF-8') : 'undefined',
+  timeRemaining: torrent.timeRemaining,
+  received: torrent.received,
+  downloaded: torrent.downloaded,
+  uploaded: torrent.uploaded,
+  downloadSpeed: torrent.downloadSpeed,
+  uploadSpeed: torrent.uploadSpeed,
+  progress: torrent.progress,
+  ratio: torrent.ratio,
+  numPeers: torrent.numPeers,
+  path: torrent.path
+}))
 
 const downloaded = () => {
   const folders = fs.readdirSync(config.webtorrent.paths.download)
@@ -172,7 +174,7 @@ const downloaded = () => {
     }
 
     if (!fs.lstatSync(filepath).isDirectory()) {
-      return;
+      return
     }
 
     const files = fs.readdirSync(config.webtorrent.paths.download + '/' + folder)

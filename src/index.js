@@ -10,7 +10,7 @@ if (config.dropbox.token && config.dropbox.torrentsPath) {
       const torrentFiles = files.filter(file => file.endsWith('.torrent'))
 
       torrentFiles.forEach((file) => {
-        const fullPath = `${config.dropbox.torrentsPath}/${file}`;
+        const fullPath = `${config.dropbox.torrentsPath}/${file}`
 
         torrentFiles
           .downloadFile(fullPath, config.webtorrent.paths.watch)

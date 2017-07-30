@@ -11,11 +11,9 @@ const fetchSubtitles = (moviePath) => {
       .filter(file => file.endsWith('.srt'))
       .map(file => `${dirname}/${file}`)
 
-  if (subs.length > 0) return Promise.resolve(subs);
+  if (subs.length > 0) return Promise.resolve(subs)
 
-  let promise;
-
-  if (config.opensubtitles.username && config.opensubtitles.password && config.opensubtitles.useragent){
+  if (config.opensubtitles.username && config.opensubtitles.password && config.opensubtitles.useragent) {
     return opensubtitles.downloadSubtitles(moviePath).catch(() => subdb.downloadSubtitles(moviePath))
   } else {
     return subdb.downloadSubtitles(moviePath)

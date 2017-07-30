@@ -4,7 +4,8 @@
   "description": "",
   "main": "./src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js",
+    "test": "standard-focus"
   },
   "bin": "./src/index.js",
   "author": "",
@@ -29,5 +30,8 @@
     "torrent-stream": "^1.0.3",
     "valid-url": "^1.0.9",
     "webtorrent": "^0.98.19"
+  },
+  "devDependencies": {
+    "standard-focus": "^1.1.2"
   }
 }

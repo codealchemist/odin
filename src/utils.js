@@ -3,19 +3,19 @@ const querystring = require('querystring')
 const config = require('config')
 
 const findLargestFile = (files) => {
-  let max = 0;
-  let largestFile;
+  let max = 0
+  let largestFile
 
   files.forEach(file => { if (file.length > max) largestFile = file })
 
-  return largestFile;
+  return largestFile
 }
 
 const generateHtmlPlayerWithSubs = (type, path, params) => {
   return subtitlesManager.fetchSubtitles(path)
     .catch((err) => {
       console.log('Couldn\'t download any sub:', err)
-      return Promise.resolve([]); // Just to continue
+      return Promise.resolve([]) // Just to continue
     })
     .then((subFiles) => {
       const subs = subFiles.map(file => {
