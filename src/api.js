@@ -7,9 +7,10 @@ const srt2vtt = require('srt-to-vtt')
 
 const movieFinder = require('./clients/yts')
 const subtitlesManager = require('./subtitles_manager')
+const postersManager = require('./posters_manager')
 const torrentManager = require('./torrent_manager')
 const videoStreamer = require('./video_streamer')
-const { findLargestFile, generateHtmlPlayerWithSubs, TORRENT_PLAYER, DISK_PLAYER } = require('./utils')
+const { findLargestFile, generateHtmlPlayerWithSubs, TORRENT_PLAYER, DISK_PLAYER, downloadFile } = require('./utils')
 
 const app = express()
 /*
@@ -24,6 +25,7 @@ app.use(function (req, res, next) {
   next()
 })
 
+app.use(express.static('../public'))
 /*
 *       API
 */
@@ -58,10 +60,17 @@ app.put('/download', (req, res) => {
     .then(torrent => {
       torrent.on('completed', () => {
         const file = findLargestFile(torrent.files)
+
         subtitlesManager
           .fetchSubtitles(torrent.path + '/' + file.path)
           .catch((err) => {
             console.log('Couldn\'t download any sub:', err)
+          })
+
+        postersManager.
+          searchPoster(torrent.info.name)
+          .then(imageUrl => {
+            downloadFile(false, imageUrl, `../public/images/${file.name}.jpg`)
           })
       })
 
@@ -82,7 +91,7 @@ app.get('/torrentPlayer', (req, res) => {
   const params = querystring.stringify({ url: req.query.url })
 
   torrentManager.getFileFromTorrent(req.query.url)
-    .then(file => generateHtmlPlayerWithSubs(TORRENT_PLAYER, file.path, params))
+    .then(({ file, fullPath }) => generateHtmlPlayerWithSubs(TORRENT_PLAYER, fullPath, params))
     .then(html => res.send(html))
     .catch(err => res.status(500).send(err))
 })

@@ -31,7 +31,7 @@ const streamFromDisk = (path, request, response) => {
 
 const streamFromTorrent = (torrentManager, magnetOrTorrent, request, response) => {
   torrentManager.getFileFromTorrent(magnetOrTorrent)
-    .then((file) => {
+    .then(({ file, fullPath }) => {
       const range = request.headers.range
       const total = file.length
       const parts = range.replace(/bytes=/, '').split('-')

@@ -24,5 +24,9 @@
     "watch_interval": 900000,
     "token": "dx3BdvJY8yIAAAAAAAAAXTYghjbkznEn-a88-BqEXQ3NXZVvIxcC0eef0Ad3Z0Rb",
     "torrentsPath": "/torrents"
+  },
+  "google_cse": {
+    "api_key": "AIzaSyDakicB3fqBt8GrbrzaJ2KJ1IYGUVj8f4M",
+    "cse_id": "013388598012859985265:jnfitepezcs"
   }
 }

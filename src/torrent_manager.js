@@ -140,8 +140,7 @@ const getFileFromTorrent = (magnetOrTorrent) => {
 
   if (torrent) {
     const file = findLargestFile(torrent.files)
-    if (!file.path.startsWith(config.webtorrent.paths.tmp)) file.path = torrent.path + '/' + file.path
-    return Promise.resolve(file)
+    return Promise.resolve({ file, fullPath: torrent.path + '/' + file.path });
   }
 
   return downloadTmp(magnetOrTorrent)
@@ -170,7 +169,11 @@ const downloaded = () => {
     const filepath = config.webtorrent.paths.download + '/' + folder
 
     if (folder.endsWith('.mp4')) {
-      return { name: folder, path: filepath }
+      return {
+        name: folder,
+        path: filepath,
+        poster: poster: `/images/${folder}.jpg`
+      }
     }
 
     if (!fs.lstatSync(filepath).isDirectory()) {
@@ -184,7 +187,8 @@ const downloaded = () => {
     if (file) {
       return {
         path: config.webtorrent.paths.download + '/' + folder + '/' + file,
-        name: folder
+        name: folder,
+        poster: `/images/${file}.jpg`
       }
     }
   })

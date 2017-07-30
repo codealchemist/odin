@@ -1,6 +1,9 @@
 const subtitlesManager = require('./subtitles_manager')
 const querystring = require('querystring')
 const config = require('config')
+const https = require('https')
+const http = require('http')
+const fs = require('fs')
 
 const findLargestFile = (files) => {
   let max = 0
@@ -31,6 +34,19 @@ const generateHtmlPlayerWithSubs = (type, path, params) => {
         </video>
       `
     })
+}
+
+const downloadFile = (ssl, url, dest) => {
+  return new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(dest);
+    const request = (ssl ? https : http).get(url, (response) => {
+      response.pipe(file)
+      file.on('finish', function() {
+        file.close()
+        resolve(dest)
+      });
+    });
+  })
 }
 
 const TORRENT_PLAYER = 'torrent'

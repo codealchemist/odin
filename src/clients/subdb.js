@@ -9,7 +9,8 @@ const downloadSubtitles = (path) => {
 
       const hash = res
       subdb.api.search_subtitles(hash, (err, res) => {
-        if (err || !res) return reject('Error with SubDB:', err)
+        if (err) return reject('Error with SubDB:', err)
+        if (!res) return reject('No subtitle found in SubDB')
 
         const promises = res.map((lang) => {
           return new Promise((resolve, reject) => {
